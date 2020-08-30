@@ -11,17 +11,21 @@ h2 {
 }
 
 .footer {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    font-size: 14px;
     text-align: center;
-    border-top: 1px solid #aaa;
-    background-color: #f0f0f0;
+    background-color: #eee;
+    border-top: 1px solid #ccc;
+    font-size: 14px;
+    padding: 4px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    z-index: 999;
 }
 
 .footer a {
-    margin: 0 5px;
     color: #666;
+    display: inline-block;
+    margin: 0 8px;
 }
