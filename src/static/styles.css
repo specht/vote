@@ -1,0 +1,27 @@
+h2 {
+    margin: 1em 0 1em 0;
+}
+
+.topic {
+    font-size: 120%;
+}
+
+.btn {
+    margin-bottom: 5px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-size: 14px;
+    text-align: center;
+    border-top: 1px solid #aaa;
+    background-color: #f0f0f0;
+}
+
+.footer a {
+    margin: 0 5px;
+    color: #666;
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Online-Abstimmung</title>
+    <script src="/bower_components/jquery-3.4.1.min.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/tcpconsole.js"></script>
+    <link rel='stylesheet' href='/bower_components/bootstrap/dist/css/bootstrap.min.css' />
+    <link href="/styles.css" rel="stylesheet">
+</head>
+
+<script>
+var code = null;
+var moderator = false;
+
+function setup() {
+    $('.topic').html('<em>Momentan findet keine Abstimmung statt.</em>');
+    code = window.location.hash.replace('#', '').trim();
+    if (code.length === 0) {
+        $('.enter-code').show();
+        $('.code-here').focus();
+    } else {
+        ws.send(JSON.stringify({verify_code: code}));
+    }
+    console.log(code);
+    $('.entered-code').click(function(e) {
+        window.location.href = '/#' + $('.code-here').val().trim();
+        window.location.reload();
+    });
+    $('.code-here').keydown(function(e) {
+        if (e.keyCode === 13)
+            $('.entered-code').click();
+    });
+    $('.ti-topic').keyup(function(e) {
+        if ($('.ti-topic').val().trim().length > 0)
+            $('.bu-start').prop('disabled', false);
+        else
+            $('.bu-start').prop('disabled', true);
+    });
+    $('.bu-start').click(function(e) {
+        ws.send(JSON.stringify({start_topic: $('.ti-topic').val().trim()}));
+    });
+    $('.bu-stop').click(function(e) {
+        ws.send(JSON.stringify({stop_topic: true}));
+    });
+    $('.bu-yes').click(function(e) {
+        $('.bu-yes').removeClass('btn-outline-secondary').addClass('btn-success');
+        $('.bu-no').removeClass('btn-danger').addClass('btn-outline-secondary');
+        $('.bu-abstention').removeClass('btn-warning').addClass('btn-outline-secondary');
+        ws.send(JSON.stringify({vote: 'yes'}));
+    });
+    $('.bu-no').click(function(e) {
+        $('.bu-yes').removeClass('btn-success').addClass('btn-outline-secondary');
+        $('.bu-no').removeClass('btn-outline-secondary').addClass('btn-danger');
+        $('.bu-abstention').removeClass('btn-warning').addClass('btn-outline-secondary');
+        ws.send(JSON.stringify({vote: 'no'}));
+    });
+    $('.bu-abstention').click(function(e) {
+        $('.bu-yes').removeClass('btn-success').addClass('btn-outline-secondary');
+        $('.bu-no').removeClass('btn-danger').addClass('btn-outline-secondary');
+        $('.bu-abstention').removeClass('btn-outline-secondary').addClass('btn-warning');
+        ws.send(JSON.stringify({vote: 'abstention'}));
+    });
+}
+
+window.onbeforeunload = function() {
+    ws.close();
+}
+
+function show_moderator() {
+    $('.code-valid-msg').hide();
+    $('.got-code').hide();
+    $('.moderator-div').show();
+}
+
+</script>
+
+<body>
+    <div class='container'>
+        <div class='row'>
+            <div class='col-md-12'>
+                <h2>Online-Abstimmung am Gymnasium Steglitz</h2>
+                <p class='alert alert-danger got-wrong-code' style='display: none;'>Der eingegebene Code ist nicht gültig.</p>
+                <div class='input-group enter-code' style='display: none;'>
+                    <input class='code-here form-control' style='text-align: center;' placeholder='Bitte geben Sie Ihren Code ein'></input>
+                    <div class="input-group-append">
+                        <button class='btn btn-primary entered-code'>Zur Abstimmung</button>
+                    </div>
+                </div>
+                <div class='got-code' style='display: none;'>
+<!--                     <p class='alert alert-success code-valid-msg'>Sie sind mit einem gültigen Code angemeldet.</p> -->
+                    <p class='alert alert-info'>Es sind <span class='people-count'>0</span> stimmberechtigte Personen anwesend.</p>
+                    <hr />
+                    <p class='topic'><em>Verbinde zum Server...</em></p>
+                    <hr />
+                    <p class='alert alert-danger lost_connection_warning' style='display: none;'>Ihr Browser hat die Verbindung zum Server verloren. Bitte laden Sie die Seite neu.</p>
+                </div>
+                <div class='moderator-div' style='display: none;'>
+                    <p class='alert alert-info'>Es sind <span class='people-count'>0</span> stimmberechtigte Personen anwesend.</p>
+                    <p class='alert alert-danger lost_connection_warning' style='display: none;'>Ihr Browser hat die Verbindung zum Server verloren. Bitte laden Sie die Seite neu.</p>
+                    <hr />
+                    <input class='form-control ti-topic' placeholder='Bitte geben Sie die Frage ein, über die abgestimmt werden soll' style='margin-bottom: 10px;' />
+                    <button class='bu-start btn btn-primary' disabled>Abstimmung beginnen</button>
+                    <button class='bu-stop btn btn-primary' disabled>Abstimmung beenden</button>
+                    <hr />
+                </div>
+            </div>
+        </div>
+        <div class='row got-code' style='display: none;'>
+            <div class='col-md-4'>
+                <button class='form-control btn btn-lg btn-outline-secondary bu-yes' disabled>Ja</button>
+            </div>
+            <div class='col-md-4'>
+                <button class='form-control btn btn-lg btn-outline-secondary bu-no' disabled>Nein</button>
+            </div>
+            <div class='col-md-4'>
+                <button class='form-control btn btn-lg btn-outline-secondary bu-abstention' disabled>Enthaltung</button>
+            </div>
+            <hr />
+        </div>
+        <div class='container vote-results' style='display: none; margin-top: 20px;'>
+            <div class='row'>
+                <div class='col-md-6 offset-md-3'>
+                    <div style='font-size: 120%'>
+                    <table class='table'>
+                    <tr><th>Ja:</th><td class='count-yes'>0</td></tr>
+                    <tr><th>Nein:</th><td class='count-no'>0</td></tr>
+                    <tr><th>Enthaltung:</th><td class='count-abstention'>0</td></tr>
+                    <tr><th>Keine Stimme abgegeben:</th><td class='count-na'>0</td></tr>
+                    </tr>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='footer'>
+    <a href='https://www.gymnasiumsteglitz.de/cms/kontakt/impressum/'>Impressum</a>
+    <a href='https://www.gymnasiumsteglitz.de/cms/schule/uebersicht/datenschutzerklaerung/'>Datenschutzerklärung</a>
+    </div>
+</body>
+</html>

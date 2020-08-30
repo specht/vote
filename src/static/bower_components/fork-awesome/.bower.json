@@ -1,0 +1,42 @@
+{
+  "name": "fork-awesome",
+  "description": "Fork Awesome",
+  "keywords": [
+    "font",
+    "fork",
+    "awesome",
+    "icon"
+  ],
+  "homepage": "http://forkawesome.github.io/Fork-Awesome",
+  "dependencies": {},
+  "devDependencies": {},
+  "license": [
+    "OFL-1.1",
+    "MIT",
+    "CC-BY-3.0"
+  ],
+  "main": [
+    "less/fork-awesome.less",
+    "scss/fork-awesome.scss"
+  ],
+  "ignore": [
+    "*/.*",
+    "*.json",
+    "src",
+    "*.yml",
+    "Gemfile",
+    "Gemfile.lock",
+    "*.md"
+  ],
+  "version": "1.1.7",
+  "_release": "1.1.7",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.1.7",
+    "commit": "ad5d85eb77e35536696cc5b52649279175cf67ae"
+  },
+  "_source": "https://github.com/ForkAwesome/Fork-Awesome.git",
+  "_target": "^1.1.7",
+  "_originalSource": "fork-awesome",
+  "_direct": true
+}
