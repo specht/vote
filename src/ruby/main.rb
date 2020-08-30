@@ -9,17 +9,19 @@ require 'digest/sha1'
 require 'prawn/qrcode'
 require 'prawn/measurement_extensions'
 
+# dieser Code wird für jede Abstimmung erneuert
+SALT = 'Rk4SyHRSE2aUF4rKCYdaq'
+
 class Main < Sinatra::Base
     @@clients = {}
     @@present_codes = {}
     @@votes = {}
     
     configure do
-        salt = 'sdyBnCIfeUIXWkbiQagcId'
         @@codes = []
         STDERR.puts "Generating codes..."
         (0...100).each do |i|
-            v = "#{salt}#{i}"
+            v = "#{SALT}#{i}"
             code = Digest::SHA1.hexdigest(v).to_i(16).to_s(10)[0, 8]
             @@codes << code
         end

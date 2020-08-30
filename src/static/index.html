@@ -28,7 +28,7 @@ function setup() {
     console.log(code);
     $('.entered-code').click(function(e) {
         window.location.href = '/#' + $('.code-here').val().trim();
-        window.location.reload();
+        window.location.reload(true);
     });
     $('.code-here').keydown(function(e) {
         if (e.keyCode === 13)
@@ -63,6 +63,10 @@ function setup() {
         $('.bu-no').removeClass('btn-danger').addClass('btn-outline-secondary');
         $('.bu-abstention').removeClass('btn-outline-secondary').addClass('btn-warning');
         ws.send(JSON.stringify({vote: 'abstention'}));
+    });
+    $('.bu-logout').click(function(e) {
+        window.location.href = '/';
+        window.location.reload(true);
     });
 }
 
@@ -138,7 +142,7 @@ function show_moderator() {
         </div>
         <hr />
         <div style='text-align: center; display: none; margin-top: 4em; margin-bottom: 4em;' class='got-code'>
-        <a href='/' class='btn btn-secondary'>Abmelden</a>
+        <button class='bu-logout btn btn-secondary'>Abmelden</button>
         </div>
     </div>
     <div class='footer'>
