@@ -66,6 +66,7 @@ function setup() {
     });
     $('.bu-logout').click(function(e) {
         window.location.href = '/';
+        window.location.hash = '';
         window.location.reload(true);
     });
 }
