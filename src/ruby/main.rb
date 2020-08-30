@@ -133,7 +133,6 @@ class Main < Sinatra::Base
                 @@clients[client_id] = ws
                 ws.send({:hello => 'world'}.to_json)
                 broadcast_count()
-                broadcast_vote_results()
             end
 
             ws.on(:close) do |event|
@@ -141,7 +140,6 @@ class Main < Sinatra::Base
                 @@clients.delete(client_id)
                 @@present_codes.delete_if { |x, y| y == client_id }
                 broadcast_count()
-                broadcast_vote_results()
             end
 
             ws.on(:message) do |msg|
@@ -163,7 +161,7 @@ class Main < Sinatra::Base
                                 broadcast_count()
                                 ws.send({:start_topic => @@topic}.to_json)
                                 if @@topic
-                                    ws.send({:vote_results => get_vote_results}.to_json)
+                                    broadcast_vote_results()
                                     if @@votes[code]
                                         ws.send({:voted => @@votes[code]}.to_json)
                                     end
