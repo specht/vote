@@ -6,6 +6,8 @@ require 'openssl'
 require 'timeout'
 require 'yaml'
 require 'digest/sha1'
+require 'prawn/qrcode'
+require 'prawn/measurement_extensions'
 
 class Main < Sinatra::Base
     @@clients = {}
@@ -26,9 +28,55 @@ class Main < Sinatra::Base
             exit(1)
         end
         @@moderator_code = @@codes[0]
-        STDERR.puts @@codes.to_yaml
-        STDERR.puts "Moderator code: #{@@moderator_code}"
         @@topic = nil
+
+        Prawn::Document::new(:page_size => 'A4', :margin => [0, 0, 0, 0]) do
+            y = 0
+            x = 0
+            
+            @@codes.each.with_index do |code, _|
+                bounding_box([x * 17.cm + 2.cm, 297.mm - y * 13.cm - 2.cm + 11.cm], width: 17.cm, height: 11.cm) do
+                    stroke { rectangle [0, 0], 17.cm, 11.cm }
+                    bounding_box([5.mm, -5.mm], width: 15.cm) do
+                        font_size 14
+                        
+                        text '<b>Code für Online-Abstimmung am Gymnasium Steglitz</b>', inline_format: true
+                        move_down 2.mm
+                        text '<em>gültig für Abstimmungen am 2. September 2020</em>', inline_format: true
+                        move_down 5.mm
+                        if code == @@moderator_code
+                            text "<b>MODERATOREN-CODE: #{code}</b>", inline_format: true
+                            move_down 5.mm
+                            text "Dieser Code ist <b>nicht</b> mit einem Stimmrecht verknüpft.", inline_format: true
+                        else
+                            text "Auf diesem Blatt finden Sie einen Code, mit dem Sie an\nOnline-Abstimmungen teilnehmen können. Ihre Stimme\nist anonym, weil Sie den Zettel selbst gewählt haben und\nsomit der Code nicht Ihrer Person zuzuordnen ist."
+                            move_down 5.mm
+                            text 'Um an der Abstimmung teilzunehmen, öffnen Sie bitte die folgende Webseite:'
+                            move_down 5.mm
+                            text '<b>https://abstimmung.gymnasiumsteglitz.de</b>', inline_format: true
+                            move_down 5.mm
+                            text "Geben Sie dort den Code <b>#{code}</b> ein. Oder scannen Sie den QR-Code, um automatisch angemeldet zu werden.", inline_format: true
+                            move_down 5.mm
+                            text "Bei Fragen zum Verfahren wenden Sie sich bitte an: specht@gymnasiumsteglitz.de.", inline_format: true
+                        end
+                    end
+                    bounding_box([133.mm, -2.mm], width: 3.cm) do
+                        print_qr_code("https://abstimmung.gymnasiumsteglitz.de/##{code}", :dot => 2.5, :stroke => false)
+                    end
+                    
+                end
+                x += 1
+                if x >= 1
+                    y += 1
+                    if y >= 2
+                        y = 0
+                        start_new_page if _ < @@codes.size - 1
+                    end
+                    x = 0
+                end
+            end
+            render_file("/raw/Codes.pdf")
+        end
     end
     
     def broadcast_count()
@@ -85,6 +133,7 @@ class Main < Sinatra::Base
                 @@clients[client_id] = ws
                 ws.send({:hello => 'world'}.to_json)
                 broadcast_count()
+                broadcast_vote_results()
             end
 
             ws.on(:close) do |event|
@@ -92,6 +141,7 @@ class Main < Sinatra::Base
                 @@clients.delete(client_id)
                 @@present_codes.delete_if { |x, y| y == client_id }
                 broadcast_count()
+                broadcast_vote_results()
             end
 
             ws.on(:message) do |msg|
