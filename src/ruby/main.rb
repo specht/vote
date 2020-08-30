@@ -142,6 +142,7 @@ class Main < Sinatra::Base
                 @@clients.delete(client_id)
                 @@present_codes.delete_if { |x, y| y == client_id }
                 broadcast_count()
+                broadcast_vote_results()
             end
 
             ws.on(:message) do |msg|
